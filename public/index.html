@@ -83,6 +83,16 @@
 
     .status { min-height: 25px; margin: 14px 2px 0; color: var(--muted); font-size: .83rem; }
     .status.error { color: var(--danger); }
+    .station-picker { margin-top: 14px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 16px; background: rgba(7, 27, 33, .62); }
+    .station-picker summary { cursor: pointer; color: var(--muted); font-size: .8rem; font-weight: 750; }
+    .station-picker summary strong { color: var(--ink); }
+    .station-tools { display: grid; grid-template-columns: minmax(220px, 1.4fr) minmax(210px, 1fr) auto; gap: 12px; align-items: end; margin-top: 16px; }
+    .station-tools label:first-child { grid-template-rows: auto 48px 48px; }
+    .station-tools button { height: 48px; padding: 0 16px; border: 1px solid rgba(84, 224, 194, .38); border-radius: 11px; color: var(--aqua); background: rgba(28, 75, 76, .34); font-weight: 800; cursor: pointer; }
+    .station-tools button:disabled { cursor: wait; opacity: .6; }
+    .id-entry { display: grid; grid-template-columns: 1fr auto; gap: 7px; }
+    .id-entry button { padding: 0 13px; }
+    .station-note { margin: 10px 0 0; color: var(--muted); font-size: .72rem; line-height: 1.45; }
 
     .chart-card { margin-top: 24px; border-radius: 26px; overflow: hidden; }
     .chart-head { display: flex; justify-content: space-between; gap: 20px; align-items: start; padding: 24px 26px 12px; }
@@ -124,6 +134,8 @@
       header { display: block; }
       .lede { margin-top: 22px; }
       .controls { grid-template-columns: 1fr 1fr; }
+      .station-tools { grid-template-columns: 1fr 1fr; }
+      .station-tools label:first-child { grid-column: 1 / -1; }
       .load { width: 100%; }
       .results-grid { grid-template-columns: 1fr; }
       .chart-head, .results-head { align-items: start; flex-direction: column; }
@@ -132,6 +144,8 @@
 
     @media (max-width: 500px) {
       .controls { grid-template-columns: 1fr; }
+      .station-tools { grid-template-columns: 1fr; }
+      .station-tools label:first-child { grid-column: auto; }
       .route { gap: 9px; }
       .time { font-size: 1.05rem; }
       .result-card { padding: 20px; }
@@ -143,7 +157,7 @@
   <main class="shell">
     <header>
       <div>
-        <p class="eyebrow">San Francisco Bay · Station 9414290</p>
+        <p id="stationLabel" class="eyebrow">NOAA Tide Predictions</p>
         <h1>Tide window<br>planner</h1>
       </div>
       <p class="lede">Find the longest daylight outing when you need enough water at both departure and return—whether you come back on the same high tide or wait for the next one.</p>
@@ -174,6 +188,20 @@
       </label>
       <button id="load" class="load">Update plan</button>
     </section>
+    <details class="station-picker">
+      <summary>Station: <strong id="selectedStation">Select a station</strong></summary>
+      <div class="station-tools">
+        <label>Nearby station search
+          <input id="stationSearch" type="search" placeholder="Name, state, or station ID" autocomplete="off">
+          <select id="nearbyStations" aria-label="Nearby NOAA tide stations"><option>Loading NOAA stations…</option></select>
+        </label>
+        <label>Enter station ID directly
+          <span class="id-entry"><input id="stationId" inputmode="numeric" placeholder="NOAA station ID"><button id="useStationId" type="button">Use ID</button></span>
+        </label>
+        <button id="useLocation" type="button">Use nearest station</button>
+      </div>
+      <p id="stationNote" class="station-note">Nearby stations are ordered by distance when browser location is available. Your selection is saved only in this browser.</p>
+    </details>
     <div id="status" class="status" role="status" aria-live="polite"></div>
 
     <section id="chartCard" class="chart-card hidden">
@@ -190,7 +218,7 @@
       </div>
       <div class="chart-scroll"><svg id="chart" role="img" aria-label="Tide prediction chart"></svg></div>
       <div class="chart-foot">
-        <span>Times shown in Pacific local time</span>
+        <span>Times shown in station local time</span>
         <span>Heights in feet above MLLW</span>
       </div>
     </section>
@@ -203,26 +231,28 @@
         </div>
       </div>
       <div id="resultsGrid" class="results-grid"></div>
-      <p class="fine-print">Planning aid only. NOAA predictions are astronomical predictions, not guaranteed water depth; weather, river flow, waves, chart datum, your draft, and local conditions can change usable clearance. Source: <a href="https://tidesandcurrents.noaa.gov/noaatidepredictions.html?id=9414290" target="_blank" rel="noreferrer">NOAA Tide Predictions</a>.</p>
+      <p class="fine-print">Planning aid only. NOAA predictions are astronomical predictions, not guaranteed water depth; weather, river flow, waves, chart datum, your draft, and local conditions can change usable clearance. Source: <a id="noaaLink" href="https://tidesandcurrents.noaa.gov/tide_predictions.html" target="_blank" rel="noreferrer">NOAA Tide Predictions</a>.</p>
     </section>
   </main>
   <div id="tooltip" class="tooltip hidden"></div>
 
   <script>
-    const STATION = '9414290';
-    const LAT = 37.8063;
-    const LON = -122.4659;
-    const ZONE = 'America/Los_Angeles';
+    const APP_ID = 'signalk-tidal-planner';
+    const DEFAULT_SETTINGS = {
+      stationId: '', stationName: 'Select a station', stationState: '',
+      latitude: null, longitude: null, timezoneOffset: 0, defaultThreshold: 4.0, defaultDays: 1
+    };
+    let settings = { ...DEFAULT_SETTINGS };
     const API = 'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
+    const STATIONS_API = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=tidepredictions';
+    const STATION_STORAGE_KEY = `${APP_ID}.station`;
     const $ = (id) => document.getElementById(id);
     const DAY = 86400000;
     let current = null;
+    let stations = [];
+    let userPosition = null;
 
-    function todayAtStation() {
-      const parts = new Intl.DateTimeFormat('en-CA', { timeZone: ZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
-      const p = Object.fromEntries(parts.map(x => [x.type, x.value]));
-      return `${p.year}-${p.month}-${p.day}`;
-    }
+    function todayAtStation() { return isoDate(Date.now() + zoneOffsetHours(isoDate(Date.now())) * 3600000); }
 
     function dateValue(iso) {
       const [y, m, d] = iso.split('-').map(Number);
@@ -255,16 +285,23 @@
       return h ? `${h} hr ${m ? `${m} min` : ''}`.trim() : `${m} min`;
     };
 
-    function zoneOffsetHours(iso) {
-      const d = new Date(`${iso}T12:00:00Z`);
-      const name = new Intl.DateTimeFormat('en-US', { timeZone: ZONE, timeZoneName: 'longOffset' })
-        .formatToParts(d).find(p => p.type === 'timeZoneName').value;
-      const match = name.match(/GMT([+-])(\d{2}):(\d{2})/);
-      if (!match) return -8;
-      return (match[1] === '-' ? -1 : 1) * (Number(match[2]) + Number(match[3]) / 60);
+    function nthSunday(year, month, n) {
+      const first = new Date(Date.UTC(year, month, 1)).getUTCDay();
+      return Date.UTC(year, month, 1 + ((7 - first) % 7) + (n - 1) * 7);
     }
 
-    // NOAA's fractional-year solar approximation; output is a Pacific wall-clock timeline.
+    function zoneOffsetHours(iso) {
+      const standard = Number(settings.timezoneOffset ?? Math.round(settings.longitude / 15));
+      const noDst = new Set(['HI', 'AZ', 'PR', 'VI', 'GU', 'AS', 'MP']);
+      const state = String(settings.stationState || '').toUpperCase();
+      if (!/^[A-Z]{2}$/.test(state) || noDst.has(state)) return standard;
+      const d = new Date(dateValue(iso)), year = d.getUTCFullYear();
+      const dstStart = nthSunday(year, 2, 2);
+      const dstEnd = nthSunday(year, 10, 1);
+      return dateValue(iso) >= dstStart && dateValue(iso) < dstEnd ? standard + 1 : standard;
+    }
+
+    // NOAA's fractional-year solar approximation; output is a station-local wall-clock timeline.
     function daylightForDate(iso) {
       const dayStart = dateValue(iso);
       const d = new Date(dayStart);
@@ -273,9 +310,9 @@
       const gamma = 2 * Math.PI / 365 * (n - 1);
       const eqtime = 229.18 * (0.000075 + 0.001868 * Math.cos(gamma) - 0.032077 * Math.sin(gamma) - 0.014615 * Math.cos(2 * gamma) - 0.040849 * Math.sin(2 * gamma));
       const decl = 0.006918 - 0.399912 * Math.cos(gamma) + 0.070257 * Math.sin(gamma) - 0.006758 * Math.cos(2 * gamma) + 0.000907 * Math.sin(2 * gamma) - 0.002697 * Math.cos(3 * gamma) + 0.00148 * Math.sin(3 * gamma);
-      const lat = LAT * Math.PI / 180;
+      const lat = settings.latitude * Math.PI / 180;
       const ha = Math.acos((Math.cos(90.833 * Math.PI / 180) / (Math.cos(lat) * Math.cos(decl))) - Math.tan(lat) * Math.tan(decl)) * 180 / Math.PI;
-      const noon = 720 - 4 * LON - eqtime + zoneOffsetHours(iso) * 60;
+      const noon = 720 - 4 * settings.longitude - eqtime + zoneOffsetHours(iso) * 60;
       return { start: dayStart + (noon - ha * 4) * 60000, end: dayStart + (noon + ha * 4) * 60000 };
     }
 
@@ -328,11 +365,12 @@
     }
 
     async function fetchTides(start, days) {
+      if (!settings.stationId) throw new Error('Select a NOAA tide-prediction station first');
       const rangeStart = dateValue(start), rangeEnd = rangeStart + days * DAY;
       const query = new URLSearchParams({
-        product: 'predictions', application: 'signalk-tidal-planner',
+        product: 'predictions', application: APP_ID,
         begin_date: noaaDate(rangeStart - DAY), end_date: noaaDate(rangeEnd + DAY),
-        datum: 'MLLW', station: STATION, time_zone: 'lst_ldt', units: 'english', interval: '6', format: 'json'
+        datum: 'MLLW', station: settings.stationId, time_zone: 'lst_ldt', units: 'english', interval: '6', format: 'json'
       });
       const response = await fetch(`${API}?${query}`);
       if (!response.ok) throw new Error(`NOAA returned ${response.status}`);
@@ -449,7 +487,150 @@
       }
     }
 
-    $('startDate').value = todayAtStation();
+    function stationFromNoaa(s) {
+      return {
+        stationId: String(s.id), stationName: s.name, stationState: s.state || '',
+        latitude: Number(s.lat), longitude: Number(s.lng),
+        stationType: s.type,
+        timezoneOffset: Number.isFinite(Number(s.timezonecorr)) ? Number(s.timezonecorr) : Math.round(Number(s.lng) / 15)
+      };
+    }
+
+    function distanceNm(a, b) {
+      const rad = n => n * Math.PI / 180;
+      const dLat = rad(b.latitude - a.latitude), dLon = rad(b.longitude - a.longitude);
+      const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.latitude)) * Math.cos(rad(b.latitude)) * Math.sin(dLon / 2) ** 2;
+      return 3440.065 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+    }
+
+    async function ensureStations() {
+      if (stations.length) return stations;
+      const response = await fetch(STATIONS_API);
+      if (!response.ok) throw new Error(`NOAA station directory returned ${response.status}`);
+      const data = await response.json();
+      stations = (data.stations || []).map(stationFromNoaa).filter(s => s.stationType === 'R' && s.stationId && Number.isFinite(s.latitude) && Number.isFinite(s.longitude));
+      if (!stations.length) throw new Error('NOAA returned no compatible six-minute tide-prediction stations');
+      return stations;
+    }
+
+    function populateStationSelect(query = '') {
+      const select = $('nearbyStations');
+      const term = query.trim().toLowerCase();
+      let matches = stations.filter(s => !term || `${s.stationName} ${s.stationState} ${s.stationId}`.toLowerCase().includes(term));
+      matches.sort(userPosition
+        ? (a, b) => distanceNm(userPosition, a) - distanceNm(userPosition, b)
+        : (a, b) => a.stationName.localeCompare(b.stationName));
+      matches = matches.slice(0, 75);
+      select.replaceChildren();
+      if (!matches.length) {
+        select.add(new Option('No matching prediction stations', ''));
+        return;
+      }
+      for (const station of matches) {
+        const distance = userPosition ? ` — ${distanceNm(userPosition, station).toFixed(1)} nm` : '';
+        const option = new Option(`${station.stationName}, ${station.stationState} (${station.stationId})${distance}`, station.stationId);
+        option.selected = station.stationId === settings.stationId;
+        select.add(option);
+      }
+    }
+
+    function refreshStationUi() {
+      if (!settings.stationId) {
+        $('selectedStation').textContent = 'Select a station';
+        $('stationLabel').textContent = 'NOAA Tide Predictions';
+        $('stationId').value = '';
+        $('noaaLink').href = 'https://tidesandcurrents.noaa.gov/tide_predictions.html';
+        document.title = 'Tide window planner';
+        return;
+      }
+      const label = `${settings.stationName}${settings.stationState ? `, ${settings.stationState}` : ''} (${settings.stationId})`;
+      $('selectedStation').textContent = label;
+      $('stationLabel').textContent = `${settings.stationName} · Station ${settings.stationId}`;
+      $('stationId').value = settings.stationId;
+      $('noaaLink').href = `https://tidesandcurrents.noaa.gov/noaatidepredictions.html?id=${encodeURIComponent(settings.stationId)}`;
+      document.title = `${settings.stationName} tide window planner`;
+    }
+
+    function saveStation() {
+      try {
+        const keys = ['stationId', 'stationName', 'stationState', 'latitude', 'longitude', 'timezoneOffset'];
+        localStorage.setItem(STATION_STORAGE_KEY, JSON.stringify(Object.fromEntries(keys.map(k => [k, settings[k]]))));
+      } catch (_) { /* Storage can be disabled by the browser. */ }
+    }
+
+    function applyStation(station, { persist = true, reload = true } = {}) {
+      settings = { ...settings, ...station };
+      if (persist) saveStation();
+      refreshStationUi();
+      if (stations.length) populateStationSelect($('stationSearch').value);
+      if (reload) {
+        $('startDate').value = todayAtStation();
+        update();
+      }
+    }
+
+    async function signalKPosition() {
+      const response = await fetch(`${location.origin}/signalk/v1/api/vessels/self/navigation/position`, { credentials: 'same-origin' });
+      if (!response.ok) throw new Error('Signal K position unavailable');
+      const data = await response.json();
+      const value = data.value || data;
+      if (!Number.isFinite(value.latitude) || !Number.isFinite(value.longitude)) throw new Error('Signal K position is empty');
+      return { latitude: value.latitude, longitude: value.longitude };
+    }
+
+    function browserPosition() {
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) return reject(new Error('Browser location is unavailable'));
+        navigator.geolocation.getCurrentPosition(
+          p => resolve({ latitude: p.coords.latitude, longitude: p.coords.longitude }), reject,
+          { enableHighAccuracy: false, timeout: 12000, maximumAge: 300000 }
+        );
+      });
+    }
+
+    async function locate() {
+      try { return await signalKPosition(); }
+      catch (_) { return browserPosition(); }
+    }
+
+    async function chooseNearest({ select = true } = {}) {
+      const button = $('useLocation');
+      button.disabled = true; button.textContent = 'Locating…';
+      try {
+        const [, position] = await Promise.all([ensureStations(), locate()]);
+        userPosition = position;
+        populateStationSelect($('stationSearch').value);
+        const nearest = stations.reduce((best, station) => !best || distanceNm(position, station) < distanceNm(position, best) ? station : best, null);
+        $('stationNote').textContent = `Stations are ordered from your current position. Nearest: ${nearest.stationName} at ${distanceNm(position, nearest).toFixed(1)} nm.`;
+        if (select) applyStation(nearest);
+        return nearest;
+      } finally {
+        button.disabled = false; button.textContent = 'Use nearest station';
+      }
+    }
+
+    async function useDirectStationId() {
+      const id = $('stationId').value.trim();
+      if (!id) return;
+      const button = $('useStationId');
+      button.disabled = true;
+      try {
+        await ensureStations();
+        const station = stations.find(s => s.stationId.toLowerCase() === id.toLowerCase());
+        if (!station) throw new Error(`Station ${id} is not a compatible NOAA six-minute prediction station`);
+        applyStation(station);
+        $('stationNote').textContent = `${station.stationName} selected and saved in this browser.`;
+      } catch (err) {
+        $('stationNote').textContent = err.message;
+      } finally { button.disabled = false; }
+    }
+
+    function loadDefaults() {
+      $('threshold').value = Number(settings.defaultThreshold).toFixed(1);
+      $('days').value = String(settings.defaultDays);
+      refreshStationUi();
+    }
+
     $('load').addEventListener('click', update);
     function pageDate(delta) {
       $('startDate').value = isoDate(dateValue($('startDate').value) + delta * DAY);
@@ -460,13 +641,53 @@
     $('startDate').addEventListener('change', update);
     $('days').addEventListener('change', update);
     $('threshold').addEventListener('keydown', e => { if (e.key === 'Enter') update(); });
+    $('stationSearch').addEventListener('input', e => populateStationSelect(e.target.value));
+    $('nearbyStations').addEventListener('change', e => {
+      const station = stations.find(s => s.stationId === e.target.value);
+      if (station) applyStation(station);
+    });
+    $('useLocation').addEventListener('click', () => chooseNearest().catch(err => { $('stationNote').textContent = err.message; }));
+    $('useStationId').addEventListener('click', useDirectStationId);
+    $('stationId').addEventListener('keydown', e => { if (e.key === 'Enter') useDirectStationId(); });
     let resizeTimer;
     window.addEventListener('resize', () => {
       if (!current) return;
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => render(current.data, current.threshold, current.startIso, current.days), 120);
     });
-    update();
+    async function initialize() {
+      loadDefaults();
+      const requestedId = new URLSearchParams(location.search).get('station');
+      let saved = null;
+      try { saved = JSON.parse(localStorage.getItem(STATION_STORAGE_KEY)); } catch (_) { /* Ignore malformed storage. */ }
+      if (!requestedId && saved?.stationId) applyStation(saved, { persist: false, reload: false });
+      try {
+        await ensureStations();
+        if (requestedId) {
+          const requested = stations.find(s => s.stationId.toLowerCase() === requestedId.toLowerCase());
+          if (!requested) throw new Error(`Station ${requestedId} is not a compatible NOAA six-minute prediction station`);
+          applyStation(requested, { persist: true, reload: false });
+          populateStationSelect();
+        } else {
+          const fresh = saved?.stationId ? stations.find(s => s.stationId === saved.stationId) : null;
+          if (fresh) {
+            applyStation(fresh, { persist: true, reload: false });
+            populateStationSelect();
+          } else {
+            await chooseNearest({ select: true });
+            return;
+          }
+        }
+      } catch (err) {
+        $('stationNote').textContent = `Could not select a nearby station automatically. ${err.message}`;
+        document.querySelector('.station-picker').open = true;
+        $('status').textContent = 'Choose a NOAA tide-prediction station to begin.';
+        return;
+      }
+      $('startDate').value = todayAtStation();
+      update();
+    }
+    initialize();
   </script>
 </body>
 </html>

@@ -1,0 +1,32 @@
+{
+  "name": "signalk-tidal-planner",
+  "version": "1.0.0",
+  "description": "Signal K webapp for NOAA tide depth and daylight departure/return windows",
+  "private": true,
+  "license": "MIT",
+  "files": [
+    "public",
+    "LICENSE",
+    "README.md"
+  ],
+  "keywords": [
+    "signalk-webapp",
+    "signalk-category-utility",
+    "tides",
+    "noaa"
+  ],
+  "signalk": {
+    "displayName": "Tide Window Planner",
+    "screenshots": [
+      "./screenshots/tide-window-planner.png"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/zph/signalk-tidal-planner.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zph/signalk-tidal-planner/issues"
+  },
+  "homepage": "https://github.com/zph/signalk-tidal-planner#readme"
+}

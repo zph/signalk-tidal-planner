@@ -1,0 +1,789 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Cabin watch display for nearby AIS traffic with configurable nautical-mile alert ranges and live depth.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "afw2gu6ucbnk0f"
+      },
+      "description": "Projected AIS positions. Green is outside the warning range, amber is inside warning_nm, and red is inside danger_nm. Targets without meaningful SOG or observed position movement for 120 seconds use a dimmed boat-with-anchor marker. Bright cyan arrow lines show ten minutes of reported course and speed for recent moving targets. Position projection is capped at sixty seconds; targets fade as fixes age and disappear after sixty minutes. Labels prefer callsign and fall back to MMSI.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#4DFF88",
+                "value": null
+              },
+              {
+                "color": "#249A55",
+                "value": 1
+              },
+              {
+                "color": "#1A6A3D",
+                "value": 2
+              },
+              {
+                "color": "#104528",
+                "value": 3
+              },
+              {
+                "color": "#FFD24A",
+                "value": 4
+              },
+              {
+                "color": "#C48700",
+                "value": 5
+              },
+              {
+                "color": "#875D00",
+                "value": 6
+              },
+              {
+                "color": "#533900",
+                "value": 7
+              },
+              {
+                "color": "#FF5A6F",
+                "value": 8
+              },
+              {
+                "color": "#AC2434",
+                "value": 9
+              },
+              {
+                "color": "#741925",
+                "value": 10
+              },
+              {
+                "color": "#470F17",
+                "value": 11
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Risk"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Alert level"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "RangeNM"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "lengthnm"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SpeedKnots"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "velocityknot"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "AgeMinutes"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix: min"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 24,
+        "w": 19,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "maxDataPoints": 1000,
+      "options": {
+        "basemap": {
+          "config": {},
+          "name": "Hidden basemap",
+          "opacity": 0,
+          "tooltip": false,
+          "type": "osm-standard"
+        },
+        "controls": {
+          "mouseWheelZoom": true,
+          "showAttribution": false,
+          "showDebug": false,
+          "showMeasure": false,
+          "showScale": true,
+          "showZoom": true
+        },
+        "layers": [
+          {
+            "config": {
+              "arrow": 0,
+              "style": {
+                "color": {
+                  "fixed": "#E02F44"
+                },
+                "lineWidth": 1,
+                "opacity": 0.8
+              }
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "D"
+            },
+            "name": "Danger range",
+            "tooltip": false,
+            "type": "route"
+          },
+          {
+            "config": {
+              "arrow": 0,
+              "style": {
+                "color": {
+                  "fixed": "#FFB000"
+                },
+                "lineWidth": 1,
+                "opacity": 0.75
+              }
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "W"
+            },
+            "name": "Warning range",
+            "tooltip": false,
+            "type": "route"
+          },
+          {
+            "config": {
+              "arrow": 0,
+              "style": {
+                "color": {
+                  "fixed": "#4F6475"
+                },
+                "lineWidth": 1,
+                "opacity": 0.55
+              }
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "H"
+            },
+            "name": "Half range",
+            "tooltip": false,
+            "type": "route"
+          },
+          {
+            "config": {
+              "arrow": 0,
+              "style": {
+                "color": {
+                  "fixed": "#6F8798"
+                },
+                "lineWidth": 1,
+                "opacity": 0.8
+              }
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "R"
+            },
+            "name": "Display range",
+            "tooltip": false,
+            "type": "route"
+          },
+          {
+            "config": {
+              "arrow": 1,
+              "style": {
+                "color": {
+                  "fixed": "#7FDBFF"
+                },
+                "lineWidth": 3,
+                "opacity": 0.9
+              }
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "V"
+            },
+            "location": {
+              "latitude": "Latitude",
+              "longitude": "Longitude",
+              "mode": "coords"
+            },
+            "name": "Ten-minute course vectors",
+            "tooltip": false,
+            "type": "route"
+          },
+          {
+            "config": {
+              "showLegend": true,
+              "style": {
+                "color": {
+                  "field": "ColorLevel",
+                  "fixed": "#2ECC71"
+                },
+                "opacity": 0.95,
+                "rotation": {
+                  "field": "Course",
+                  "fixed": 0,
+                  "max": 360,
+                  "min": -360,
+                  "mode": "mod"
+                },
+                "size": {
+                  "fixed": 16,
+                  "max": 24,
+                  "min": 12
+                },
+                "symbol": {
+                  "fixed": "/public/img/icons/marker/ais-boat.svg",
+                  "mode": "fixed"
+                },
+                "symbolAlign": {
+                  "horizontal": "center",
+                  "vertical": "center"
+                },
+                "text": {
+                  "field": "Label",
+                  "fixed": "",
+                  "mode": "field"
+                },
+                "textConfig": {
+                  "fontSize": 11,
+                  "offsetX": 0,
+                  "offsetY": 18,
+                  "textAlign": "center",
+                  "textBaseline": "top"
+                }
+              }
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "A"
+            },
+            "location": {
+              "latitude": "Latitude",
+              "longitude": "Longitude",
+              "mode": "coords"
+            },
+            "name": "Underway AIS targets",
+            "tooltip": true,
+            "type": "markers"
+          },
+          {
+            "config": {
+              "showLegend": false,
+              "style": {
+                "color": {
+                  "field": "ColorLevel",
+                  "fixed": "#2ECC71"
+                },
+                "opacity": 0.5,
+                "rotation": {
+                  "field": "Course",
+                  "fixed": 0,
+                  "max": 360,
+                  "min": -360,
+                  "mode": "mod"
+                },
+                "size": {
+                  "fixed": 16,
+                  "max": 24,
+                  "min": 12
+                },
+                "symbol": {
+                  "fixed": "/public/img/icons/marker/ais-boat-anchored.svg",
+                  "mode": "fixed"
+                },
+                "symbolAlign": {
+                  "horizontal": "center",
+                  "vertical": "center"
+                },
+                "text": {
+                  "field": "Label",
+                  "fixed": "",
+                  "mode": "field"
+                },
+                "textConfig": {
+                  "fontSize": 11,
+                  "offsetX": 0,
+                  "offsetY": 18,
+                  "textAlign": "center",
+                  "textBaseline": "top"
+                }
+              }
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "S"
+            },
+            "location": {
+              "latitude": "Latitude",
+              "longitude": "Longitude",
+              "mode": "coords"
+            },
+            "name": "Anchored AIS targets",
+            "tooltip": true,
+            "type": "markers"
+          },
+          {
+            "config": {
+              "showLegend": false,
+              "style": {
+                "color": {
+                  "fixed": "#33B5E5"
+                },
+                "opacity": 1,
+                "rotation": {
+                  "field": "Course",
+                  "fixed": 0,
+                  "max": 360,
+                  "min": -360,
+                  "mode": "mod"
+                },
+                "size": {
+                  "fixed": 20,
+                  "max": 24,
+                  "min": 16
+                },
+                "symbol": {
+                  "fixed": "/public/img/icons/marker/ais-boat.svg",
+                  "mode": "fixed"
+                },
+                "symbolAlign": {
+                  "horizontal": "center",
+                  "vertical": "center"
+                },
+                "text": {
+                  "fixed": "OWN SHIP",
+                  "mode": "fixed"
+                },
+                "textConfig": {
+                  "fontSize": 11,
+                  "offsetX": 0,
+                  "offsetY": 22,
+                  "textAlign": "center",
+                  "textBaseline": "top"
+                }
+              }
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "O"
+            },
+            "location": {
+              "latitude": "Latitude",
+              "longitude": "Longitude",
+              "mode": "coords"
+            },
+            "name": "Own ship",
+            "tooltip": true,
+            "type": "markers"
+          }
+        ],
+        "tooltip": {
+          "mode": "details"
+        },
+        "view": {
+          "id": "coords",
+          "lat": 38.0666343,
+          "lon": -122.2132984,
+          "maxZoom": 16,
+          "zoom": 12
+        }
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "afw2gu6ucbnk0f"
+          },
+          "query": "import \"date\"\nimport \"math\"\nimport \"strings\"\n\nstationaryOnly = false\nstationaryWindow = 2m\nmovingSpeedMps = 0.257222\nmovingDistanceNM = 0.01\n\npositionHistory = from(bucket: \"ais\")\n  |> range(start: -60m)\n  |> filter(fn: (r) => r._measurement == \"navigation.position\" and (r._field == \"lat\" or r._field == \"lon\"))\n  |> pivot(rowKey: [\"_time\", \"context\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => exists r.lat and exists r.lon)\n  |> map(fn: (r) => ({\n    context: r.context,\n    sampleTime: r._time,\n    sampleLat: r.lat,\n    sampleLon: r.lon,\n    self: if exists r.self then r.self else \"false\"\n  }))\n\npositions = positionHistory\n  |> group(columns: [\"context\"])\n  |> sort(columns: [\"sampleTime\"], desc: true)\n  |> limit(n: 1)\n  |> rename(columns: {sampleTime: \"positionTime\", sampleLat: \"lat\", sampleLon: \"lon\"})\n\npositionMotionFallback = positions\n  |> map(fn: (r) => ({context: r.context, positionMoving: true, positionPriority: 0}))\n\npositionMotionDetected = join(tables: {\n    sample: positionHistory,\n    latest: positions |> keep(columns: [\"context\", \"positionTime\", \"lat\", \"lon\"])\n  }, on: [\"context\"])\n  |> filter(fn: (r) => uint(v: r.positionTime) >= uint(v: r.sampleTime) + uint(v: 120000000000))\n  |> group(columns: [\"context\"])\n  |> sort(columns: [\"sampleTime\"], desc: true)\n  |> limit(n: 1)\n  |> map(fn: (r) => {\n    northNM = (r.lat - r.sampleLat) * 60.0\n    eastNM = (r.lon - r.sampleLon) * 60.0 * math.cos(x: r.lat * math.pi / 180.0)\n    distanceNM = math.sqrt(x: northNM * northNM + eastNM * eastNM)\n    return {context: r.context, positionMoving: distanceNM >= movingDistanceNM, positionPriority: 1}\n  })\n\npositionMotion = union(tables: [positionMotionFallback, positionMotionDetected])\n  |> group(columns: [\"context\"])\n  |> sort(columns: [\"positionPriority\"], desc: true)\n  |> limit(n: 1)\n\ncourseFallback = positions\n  |> map(fn: (r) => ({context: r.context, cog: 0.0, motionPriority: 0}))\n\ncourseReports = from(bucket: \"ais\")\n  |> range(start: -60m)\n  |> filter(fn: (r) => r._measurement == \"navigation.courseOverGroundTrue\" and r._field == \"value\")\n  |> group(columns: [\"context\"])\n  |> last()\n  |> map(fn: (r) => ({context: r.context, cog: float(v: r._value), motionPriority: 1}))\n\ncourses = union(tables: [courseFallback, courseReports])\n  |> group(columns: [\"context\"])\n  |> sort(columns: [\"motionPriority\"], desc: true)\n  |> limit(n: 1)\n\nspeedFallback = positions\n  |> map(fn: (r) => ({context: r.context, sog: 0.0, sogTime: r.positionTime, hasSog: false, motionPriority: 0}))\n\nspeedReports = from(bucket: \"ais\")\n  |> range(start: -60m)\n  |> filter(fn: (r) => r._measurement == \"navigation.speedOverGround\" and r._field == \"value\")\n  |> group(columns: [\"context\"])\n  |> last()\n  |> map(fn: (r) => ({context: r.context, sog: float(v: r._value), sogTime: r._time, hasSog: true, motionPriority: 1}))\n\nspeeds = union(tables: [speedFallback, speedReports])\n  |> group(columns: [\"context\"])\n  |> sort(columns: [\"motionPriority\"], desc: true)\n  |> limit(n: 1)\n\nrecentSpeedFallback = positions\n  |> map(fn: (r) => ({context: r.context, speedMoving: false, motionPriority: 0}))\n\nrecentMovingSpeeds = from(bucket: \"ais\")\n  |> range(start: date.sub(d: stationaryWindow, from: now()))\n  |> filter(fn: (r) => r._measurement == \"navigation.speedOverGround\" and r._field == \"value\" and float(v: r._value) >= movingSpeedMps)\n  |> group(columns: [\"context\"])\n  |> last()\n  |> map(fn: (r) => ({context: r.context, speedMoving: true, motionPriority: 1}))\n\nrecentSpeedMotion = union(tables: [recentSpeedFallback, recentMovingSpeeds])\n  |> group(columns: [\"context\"])\n  |> sort(columns: [\"motionPriority\"], desc: true)\n  |> limit(n: 1)\n\nidentityFallback = positions\n  |> map(fn: (r) => ({context: r.context, callsign: \"\", identityPriority: 0}))\n\ncallsigns = from(bucket: \"ais\")\n  |> range(start: -7d)\n  |> filter(fn: (r) => r._measurement == \"communication.callsignVhf\" and r._field == \"value\")\n  |> group(columns: [\"context\"])\n  |> last()\n  |> map(fn: (r) => ({context: r.context, callsign: string(v: r._value), identityPriority: 1}))\n\nidentities = union(tables: [identityFallback, callsigns])\n  |> group(columns: [\"context\"])\n  |> sort(columns: [\"identityPriority\"], desc: true)\n  |> limit(n: 1)\n\nwithCourse = join(tables: {p: positions, c: courses}, on: [\"context\"])\nwithSpeed = join(tables: {p: withCourse, s: speeds}, on: [\"context\"])\nwithPositionMotion = join(tables: {p: withSpeed, m: positionMotion}, on: [\"context\"])\nwithMotion = join(tables: {p: withPositionMotion, m: recentSpeedMotion}, on: [\"context\"])\nwithIdentity = join(tables: {p: withMotion, i: identities}, on: [\"context\"])\n\nown = withSpeed\n  |> filter(fn: (r) => r.self == \"true\")\n  |> map(fn: (r) => ({joinKey: \"own\", ownLat: r.lat, ownLon: r.lon}))\n  |> limit(n: 1)\n\ntargets = withIdentity\n  |> filter(fn: (r) => r.self != \"true\")\n  |> map(fn: (r) => ({r with joinKey: \"own\"}))\n\njoin(tables: {t: targets, o: own}, on: [\"joinKey\"])\n  |> map(fn: (r) => {\n    age = float(v: uint(v: now()) - uint(v: r.positionTime)) / 1000000000.0\n    sogAge = float(v: uint(v: now()) - uint(v: r.sogTime)) / 1000000000.0\n    stationary = not r.speedMoving and not r.positionMoving\n    projectedAge = if age > 60.0 then 60.0 else if age < 0.0 then 0.0 else age\n    projectedNM = if r.hasSog and sogAge <= 120.0 and not stationary then r.sog * projectedAge / 1852.0 else 0.0\n    latitude = r.lat + projectedNM * math.cos(x: r.cog) / 60.0\n    longitude = r.lon + projectedNM * math.sin(x: r.cog) / (60.0 * math.cos(x: r.ownLat * math.pi / 180.0))\n    northNM = (latitude - r.ownLat) * 60.0\n    eastNM = (longitude - r.ownLon) * 60.0 * math.cos(x: r.ownLat * math.pi / 180.0)\n    rangeNM = math.sqrt(x: northNM * northNM + eastNM * eastNM)\n    risk = if rangeNM <= float(v: ${danger_nm}) then 2.0 else if rangeNM <= float(v: ${warning_nm}) then 1.0 else 0.0\n    ageBand = if age <= 180.0 then 0.0 else if age <= 900.0 then 1.0 else if age <= 1800.0 then 2.0 else 3.0\n    fallbackMMSI = strings.replaceAll(v: r.context, t: \"vessels.urn:mrn:imo:mmsi:\", u: \"\")\n    return {\n      _time: r.positionTime,\n      Latitude: latitude,\n      Longitude: longitude,\n      Label: if r.callsign != \"\" then r.callsign else fallbackMMSI,\n      Course: r.cog * 180.0 / math.pi,\n      SpeedKnots: r.sog * 1.9438444924,\n      RangeNM: rangeNM,\n      AgeMinutes: age / 60.0,\n      Risk: risk,\n      Stationary: stationary,\n      ColorLevel: risk * 4.0 + ageBand\n    }\n  })\n  |> filter(fn: (r) => r.Stationary == stationaryOnly and r.RangeNM <= float(v: ${range_nm}))\n  |> group()\n",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "afw2gu6ucbnk0f"
+          },
+          "query": "import \"date\"\nimport \"math\"\nimport \"strings\"\n\nstationaryOnly = true\nstationaryWindow = 2m\nmovingSpeedMps = 0.257222\nmovingDistanceNM = 0.01\n\npositionHistory = from(bucket: \"ais\")\n  |> range(start: -60m)\n  |> filter(fn: (r) => r._measurement == \"navigation.position\" and (r._field == \"lat\" or r._field == \"lon\"))\n  |> pivot(rowKey: [\"_time\", \"context\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => exists r.lat and exists r.lon)\n  |> map(fn: (r) => ({\n    context: r.context,\n    sampleTime: r._time,\n    sampleLat: r.lat,\n    sampleLon: r.lon,\n    self: if exists r.self then r.self else \"false\"\n  }))\n\npositions = positionHistory\n  |> group(columns: [\"context\"])\n  |> sort(columns: [\"sampleTime\"], desc: true)\n  |> limit(n: 1)\n  |> rename(columns: {sampleTime: \"positionTime\", sampleLat: \"lat\", sampleLon: \"lon\"})\n\npositionMotionFallback = positions\n  |> map(fn: (r) => ({context: r.context, positionMoving: true, positionPriority: 0}))\n\npositionMotionDetected = join(tables: {\n    sample: positionHistory,\n    latest: positions |> keep(columns: [\"context\", \"positionTime\", \"lat\", \"lon\"])\n  }, on: [\"context\"])\n  |> filter(fn: (r) => uint(v: r.positionTime) >= uint(v: r.sampleTime) + uint(v: 120000000000))\n  |> group(columns: [\"context\"])\n  |> sort(columns: [\"sampleTime\"], desc: true)\n  |> limit(n: 1)\n  |> map(fn: (r) => {\n    northNM = (r.lat - r.sampleLat) * 60.0\n    eastNM = (r.lon - r.sampleLon) * 60.0 * math.cos(x: r.lat * math.pi / 180.0)\n    distanceNM = math.sqrt(x: northNM * northNM + eastNM * eastNM)\n    return {context: r.context, positionMoving: distanceNM >= movingDistanceNM, positionPriority: 1}\n  })\n\npositionMotion = union(tables: [positionMotionFallback, positionMotionDetected])\n  |> group(columns: [\"context\"])\n  |> sort(columns: [\"positionPriority\"], desc: true)\n  |> limit(n: 1)\n\ncourseFallback = positions\n  |> map(fn: (r) => ({context: r.context, cog: 0.0, motionPriority: 0}))\n\ncourseReports = from(bucket: \"ais\")\n  |> range(start: -60m)\n  |> filter(fn: (r) => r._measurement == \"navigation.courseOverGroundTrue\" and r._field == \"value\")\n  |> group(columns: [\"context\"])\n  |> last()\n  |> map(fn: (r) => ({context: r.context, cog: float(v: r._value), motionPriority: 1}))\n\ncourses = union(tables: [courseFallback, courseReports])\n  |> group(columns: [\"context\"])\n  |> sort(columns: [\"motionPriority\"], desc: true)\n  |> limit(n: 1)\n\nspeedFallback = positions\n  |> map(fn: (r) => ({context: r.context, sog: 0.0, sogTime: r.positionTime, hasSog: false, motionPriority: 0}))\n\nspeedReports = from(bucket: \"ais\")\n  |> range(start: -60m)\n  |> filter(fn: (r) => r._measurement == \"navigation.speedOverGround\" and r._field == \"value\")\n  |> group(columns: [\"context\"])\n  |> last()\n  |> map(fn: (r) => ({context: r.context, sog: float(v: r._value), sogTime: r._time, hasSog: true, motionPriority: 1}))\n\nspeeds = union(tables: [speedFallback, speedReports])\n  |> group(columns: [\"context\"])\n  |> sort(columns: [\"motionPriority\"], desc: true)\n  |> limit(n: 1)\n\nrecentSpeedFallback = positions\n  |> map(fn: (r) => ({context: r.context, speedMoving: false, motionPriority: 0}))\n\nrecentMovingSpeeds = from(bucket: \"ais\")\n  |> range(start: date.sub(d: stationaryWindow, from: now()))\n  |> filter(fn: (r) => r._measurement == \"navigation.speedOverGround\" and r._field == \"value\" and float(v: r._value) >= movingSpeedMps)\n  |> group(columns: [\"context\"])\n  |> last()\n  |> map(fn: (r) => ({context: r.context, speedMoving: true, motionPriority: 1}))\n\nrecentSpeedMotion = union(tables: [recentSpeedFallback, recentMovingSpeeds])\n  |> group(columns: [\"context\"])\n  |> sort(columns: [\"motionPriority\"], desc: true)\n  |> limit(n: 1)\n\nidentityFallback = positions\n  |> map(fn: (r) => ({context: r.context, callsign: \"\", identityPriority: 0}))\n\ncallsigns = from(bucket: \"ais\")\n  |> range(start: -7d)\n  |> filter(fn: (r) => r._measurement == \"communication.callsignVhf\" and r._field == \"value\")\n  |> group(columns: [\"context\"])\n  |> last()\n  |> map(fn: (r) => ({context: r.context, callsign: string(v: r._value), identityPriority: 1}))\n\nidentities = union(tables: [identityFallback, callsigns])\n  |> group(columns: [\"context\"])\n  |> sort(columns: [\"identityPriority\"], desc: true)\n  |> limit(n: 1)\n\nwithCourse = join(tables: {p: positions, c: courses}, on: [\"context\"])\nwithSpeed = join(tables: {p: withCourse, s: speeds}, on: [\"context\"])\nwithPositionMotion = join(tables: {p: withSpeed, m: positionMotion}, on: [\"context\"])\nwithMotion = join(tables: {p: withPositionMotion, m: recentSpeedMotion}, on: [\"context\"])\nwithIdentity = join(tables: {p: withMotion, i: identities}, on: [\"context\"])\n\nown = withSpeed\n  |> filter(fn: (r) => r.self == \"true\")\n  |> map(fn: (r) => ({joinKey: \"own\", ownLat: r.lat, ownLon: r.lon}))\n  |> limit(n: 1)\n\ntargets = withIdentity\n  |> filter(fn: (r) => r.self != \"true\")\n  |> map(fn: (r) => ({r with joinKey: \"own\"}))\n\njoin(tables: {t: targets, o: own}, on: [\"joinKey\"])\n  |> map(fn: (r) => {\n    age = float(v: uint(v: now()) - uint(v: r.positionTime)) / 1000000000.0\n    sogAge = float(v: uint(v: now()) - uint(v: r.sogTime)) / 1000000000.0\n    stationary = not r.speedMoving and not r.positionMoving\n    projectedAge = if age > 60.0 then 60.0 else if age < 0.0 then 0.0 else age\n    projectedNM = if r.hasSog and sogAge <= 120.0 and not stationary then r.sog * projectedAge / 1852.0 else 0.0\n    latitude = r.lat + projectedNM * math.cos(x: r.cog) / 60.0\n    longitude = r.lon + projectedNM * math.sin(x: r.cog) / (60.0 * math.cos(x: r.ownLat * math.pi / 180.0))\n    northNM = (latitude - r.ownLat) * 60.0\n    eastNM = (longitude - r.ownLon) * 60.0 * math.cos(x: r.ownLat * math.pi / 180.0)\n    rangeNM = math.sqrt(x: northNM * northNM + eastNM * eastNM)\n    risk = if rangeNM <= float(v: ${danger_nm}) then 2.0 else if rangeNM <= float(v: ${warning_nm}) then 1.0 else 0.0\n    ageBand = if age <= 180.0 then 0.0 else if age <= 900.0 then 1.0 else if age <= 1800.0 then 2.0 else 3.0\n    fallbackMMSI = strings.replaceAll(v: r.context, t: \"vessels.urn:mrn:imo:mmsi:\", u: \"\")\n    return {\n      _time: r.positionTime,\n      Latitude: latitude,\n      Longitude: longitude,\n      Label: if r.callsign != \"\" then r.callsign else fallbackMMSI,\n      Course: r.cog * 180.0 / math.pi,\n      SpeedKnots: r.sog * 1.9438444924,\n      RangeNM: rangeNM,\n      AgeMinutes: age / 60.0,\n      Risk: risk,\n      Stationary: stationary,\n      ColorLevel: risk * 4.0 + ageBand\n    }\n  })\n  |> filter(fn: (r) => r.Stationary == stationaryOnly and r.RangeNM <= float(v: ${range_nm}))\n  |> group()\n",
+          "refId": "S"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "afw2gu6ucbnk0f"
+          },
+          "query": "import \"math\"\n\npositions = from(bucket: \"ais\")\n  |> range(start: -15m)\n  |> filter(fn: (r) => r._measurement == \"navigation.position\" and (r._field == \"lat\" or r._field == \"lon\"))\n  |> pivot(rowKey: [\"_time\", \"context\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => exists r.lat and exists r.lon)\n  |> group(columns: [\"context\"])\n  |> sort(columns: [\"_time\"], desc: true)\n  |> limit(n: 1)\n  |> rename(columns: {_time: \"positionTime\"})\n  |> keep(columns: [\"context\", \"positionTime\", \"lat\", \"lon\", \"self\"])\n\ncourses = from(bucket: \"ais\")\n  |> range(start: -15m)\n  |> filter(fn: (r) => r._measurement == \"navigation.courseOverGroundTrue\" and r._field == \"value\")\n  |> group(columns: [\"context\"])\n  |> last()\n  |> map(fn: (r) => ({context: r.context, cog: float(v: r._value)}))\n\nspeeds = from(bucket: \"ais\")\n  |> range(start: -2m)\n  |> filter(fn: (r) => r._measurement == \"navigation.speedOverGround\" and r._field == \"value\")\n  |> group(columns: [\"context\"])\n  |> last()\n  |> map(fn: (r) => ({context: r.context, sog: float(v: r._value)}))\n\nwithCourse = join(tables: {p: positions, c: courses}, on: [\"context\"])\nwithMotion = join(tables: {p: withCourse, s: speeds}, on: [\"context\"])\n\nown = positions\n  |> filter(fn: (r) => r.self == \"true\")\n  |> group()\n  |> limit(n: 1)\n  |> map(fn: (r) => ({joinKey: \"own\", ownLat: r.lat, ownLon: r.lon}))\n\ntargets = withMotion\n  |> filter(fn: (r) => (not exists r.self or r.self != \"true\") and r.sog >= 0.257222)\n  |> map(fn: (r) => ({r with joinKey: \"own\"}))\n\nvectors = join(tables: {t: targets, o: own}, on: [\"joinKey\"])\n  |> map(fn: (r) => {\n    age = float(v: uint(v: now()) - uint(v: r.positionTime)) / 1000000000.0\n    projectedAge = if age > 60.0 then 60.0 else if age < 0.0 then 0.0 else age\n    projectedNM = r.sog * projectedAge / 1852.0\n    latitude = r.lat + projectedNM * math.cos(x: r.cog) / 60.0\n    longitude = r.lon + projectedNM * math.sin(x: r.cog) / (60.0 * math.cos(x: r.ownLat * math.pi / 180.0))\n    northNM = (latitude - r.ownLat) * 60.0\n    eastNM = (longitude - r.ownLon) * 60.0 * math.cos(x: r.ownLat * math.pi / 180.0)\n    return {\n      context: r.context,\n      positionTime: r.positionTime,\n      Latitude: latitude,\n      Longitude: longitude,\n      ProjectionNM: r.sog * 600.0 / 1852.0,\n      Course: r.cog,\n      RangeNM: math.sqrt(x: northNM * northNM + eastNM * eastNM)\n    }\n  })\n  |> filter(fn: (r) => r.RangeNM <= float(v: ${range_nm}))\n\nstarts = vectors\n  |> map(fn: (r) => ({_time: r.positionTime, context: r.context, Sort: 0, Latitude: r.Latitude, Longitude: r.Longitude}))\n\nends = vectors\n  |> map(fn: (r) => ({\n    _time: r.positionTime,\n    context: r.context,\n    Sort: 1,\n    Latitude: r.Latitude + r.ProjectionNM * math.cos(x: r.Course) / 60.0,\n    Longitude: r.Longitude + r.ProjectionNM * math.sin(x: r.Course) / (60.0 * math.cos(x: r.Latitude * math.pi / 180.0))\n  }))\n\nunion(tables: [starts, ends])\n  |> group(columns: [\"context\"])\n  |> sort(columns: [\"Sort\"])",
+          "refId": "V"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "afw2gu6ucbnk0f"
+          },
+          "query": "import \"math\"\n\npositions = from(bucket: \"ais\")\n  |> range(start: -3m)\n  |> filter(fn: (r) => r._measurement == \"navigation.position\" and r.self == \"true\" and (r._field == \"lat\" or r._field == \"lon\"))\n  |> pivot(rowKey: [\"_time\", \"context\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => exists r.lat and exists r.lon)\n  |> group()\n  |> sort(columns: [\"_time\"], desc: true)\n  |> limit(n: 1)\n\ncourse = from(bucket: \"ais\")\n  |> range(start: -3m)\n  |> filter(fn: (r) => r._measurement == \"navigation.courseOverGroundTrue\" and r._field == \"value\" and r.self == \"true\")\n  |> group()\n  |> last()\n  |> map(fn: (r) => ({joinKey: \"own\", Course: r._value * 180.0 / math.pi}))\n\nownPosition = positions\n  |> map(fn: (r) => ({joinKey: \"own\", _time: r._time, Latitude: r.lat, Longitude: r.lon}))\n\njoin(tables: {p: ownPosition, c: course}, on: [\"joinKey\"])\n  |> keep(columns: [\"_time\", \"Latitude\", \"Longitude\", \"Course\"])",
+          "refId": "O"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "afw2gu6ucbnk0f"
+          },
+          "query": "import \"array\"\nimport \"math\"\n\nradius = float(v: ${danger_nm})\nangles = array.from(rows: [{a: 0.0}, {a: 15.0}, {a: 30.0}, {a: 45.0}, {a: 60.0}, {a: 75.0}, {a: 90.0}, {a: 105.0}, {a: 120.0}, {a: 135.0}, {a: 150.0}, {a: 165.0}, {a: 180.0}, {a: 195.0}, {a: 210.0}, {a: 225.0}, {a: 240.0}, {a: 255.0}, {a: 270.0}, {a: 285.0}, {a: 300.0}, {a: 315.0}, {a: 330.0}, {a: 345.0}, {a: 360.0}]) |> map(fn: (r) => ({r with k: \"ring\"}))\nown = from(bucket: \"ais\") |> range(start: -3m) |> filter(fn: (r) => r._measurement == \"navigation.position\" and r.self == \"true\" and (r._field == \"lat\" or r._field == \"lon\")) |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\") |> filter(fn: (r) => exists r.lat and exists r.lon) |> group() |> sort(columns: [\"_time\"], desc: true) |> limit(n: 1) |> map(fn: (r) => ({k: \"ring\", lat: r.lat, lon: r.lon}))\n\njoin(tables: {a: angles, o: own}, on: [\"k\"]) |> map(fn: (r) => ({_time: now(), Sort: r.a, Latitude: r.lat + radius * math.cos(x: r.a * math.pi / 180.0) / 60.0, Longitude: r.lon + radius * math.sin(x: r.a * math.pi / 180.0) / (60.0 * math.cos(x: r.lat * math.pi / 180.0))})) |> sort(columns: [\"Sort\"])",
+          "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "afw2gu6ucbnk0f"
+          },
+          "query": "import \"array\"\nimport \"math\"\n\nradius = float(v: ${warning_nm})\nangles = array.from(rows: [{a: 0.0}, {a: 15.0}, {a: 30.0}, {a: 45.0}, {a: 60.0}, {a: 75.0}, {a: 90.0}, {a: 105.0}, {a: 120.0}, {a: 135.0}, {a: 150.0}, {a: 165.0}, {a: 180.0}, {a: 195.0}, {a: 210.0}, {a: 225.0}, {a: 240.0}, {a: 255.0}, {a: 270.0}, {a: 285.0}, {a: 300.0}, {a: 315.0}, {a: 330.0}, {a: 345.0}, {a: 360.0}]) |> map(fn: (r) => ({r with k: \"ring\"}))\nown = from(bucket: \"ais\") |> range(start: -3m) |> filter(fn: (r) => r._measurement == \"navigation.position\" and r.self == \"true\" and (r._field == \"lat\" or r._field == \"lon\")) |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\") |> filter(fn: (r) => exists r.lat and exists r.lon) |> group() |> sort(columns: [\"_time\"], desc: true) |> limit(n: 1) |> map(fn: (r) => ({k: \"ring\", lat: r.lat, lon: r.lon}))\n\njoin(tables: {a: angles, o: own}, on: [\"k\"]) |> map(fn: (r) => ({_time: now(), Sort: r.a, Latitude: r.lat + radius * math.cos(x: r.a * math.pi / 180.0) / 60.0, Longitude: r.lon + radius * math.sin(x: r.a * math.pi / 180.0) / (60.0 * math.cos(x: r.lat * math.pi / 180.0))})) |> sort(columns: [\"Sort\"])",
+          "refId": "W"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "afw2gu6ucbnk0f"
+          },
+          "query": "import \"array\"\nimport \"math\"\n\nradius = float(v: ${range_nm}) / 2.0\nangles = array.from(rows: [{a: 0.0}, {a: 15.0}, {a: 30.0}, {a: 45.0}, {a: 60.0}, {a: 75.0}, {a: 90.0}, {a: 105.0}, {a: 120.0}, {a: 135.0}, {a: 150.0}, {a: 165.0}, {a: 180.0}, {a: 195.0}, {a: 210.0}, {a: 225.0}, {a: 240.0}, {a: 255.0}, {a: 270.0}, {a: 285.0}, {a: 300.0}, {a: 315.0}, {a: 330.0}, {a: 345.0}, {a: 360.0}]) |> map(fn: (r) => ({r with k: \"ring\"}))\nown = from(bucket: \"ais\") |> range(start: -3m) |> filter(fn: (r) => r._measurement == \"navigation.position\" and r.self == \"true\" and (r._field == \"lat\" or r._field == \"lon\")) |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\") |> filter(fn: (r) => exists r.lat and exists r.lon) |> group() |> sort(columns: [\"_time\"], desc: true) |> limit(n: 1) |> map(fn: (r) => ({k: \"ring\", lat: r.lat, lon: r.lon}))\n\njoin(tables: {a: angles, o: own}, on: [\"k\"]) |> map(fn: (r) => ({_time: now(), Sort: r.a, Latitude: r.lat + radius * math.cos(x: r.a * math.pi / 180.0) / 60.0, Longitude: r.lon + radius * math.sin(x: r.a * math.pi / 180.0) / (60.0 * math.cos(x: r.lat * math.pi / 180.0))})) |> sort(columns: [\"Sort\"])",
+          "refId": "H"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "afw2gu6ucbnk0f"
+          },
+          "query": "import \"array\"\nimport \"math\"\n\nradius = float(v: ${range_nm})\nangles = array.from(rows: [{a: 0.0}, {a: 15.0}, {a: 30.0}, {a: 45.0}, {a: 60.0}, {a: 75.0}, {a: 90.0}, {a: 105.0}, {a: 120.0}, {a: 135.0}, {a: 150.0}, {a: 165.0}, {a: 180.0}, {a: 195.0}, {a: 210.0}, {a: 225.0}, {a: 240.0}, {a: 255.0}, {a: 270.0}, {a: 285.0}, {a: 300.0}, {a: 315.0}, {a: 330.0}, {a: 345.0}, {a: 360.0}]) |> map(fn: (r) => ({r with k: \"ring\"}))\nown = from(bucket: \"ais\") |> range(start: -3m) |> filter(fn: (r) => r._measurement == \"navigation.position\" and r.self == \"true\" and (r._field == \"lat\" or r._field == \"lon\")) |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\") |> filter(fn: (r) => exists r.lat and exists r.lon) |> group() |> sort(columns: [\"_time\"], desc: true) |> limit(n: 1) |> map(fn: (r) => ({k: \"ring\", lat: r.lat, lon: r.lon}))\n\njoin(tables: {a: angles, o: own}, on: [\"k\"]) |> map(fn: (r) => ({_time: now(), Sort: r.a, Latitude: r.lat + radius * math.cos(x: r.a * math.pi / 180.0) / 60.0, Longitude: r.lon + radius * math.sin(x: r.a * math.pi / 180.0) / (60.0 * math.cos(x: r.lat * math.pi / 180.0))})) |> sort(columns: [\"Sort\"])",
+          "refId": "R"
+        }
+      ],
+      "title": "AIS Radar",
+      "transparent": false,
+      "type": "geomap"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "afw2gu6ucbnk0f"
+      },
+      "description": "Current depth below the transducer in feet with a thirty-minute sparkline. Missing samples remain gaps.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "-"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E02F44",
+                "value": null
+              },
+              {
+                "color": "#FFB000",
+                "value": 5
+              },
+              {
+                "color": "#2ECC71",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "suffix: ft"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 5,
+        "x": 19,
+        "y": 0
+      },
+      "id": 2,
+      "maxDataPoints": 900,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "vertical",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "afw2gu6ucbnk0f"
+          },
+          "query": "from(bucket: \"signalk\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"environment.depth.belowTransducer\" and r._field == \"value\" and r.self == \"true\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: true)\n  |> map(fn: (r) => ({r with _value: r._value * 3.280839895, _field: \"Depth below transducer\"}))\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])",
+          "refId": "A"
+        }
+      ],
+      "title": "Depth",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "afw2gu6ucbnk0f"
+      },
+      "description": "Count of AIS targets whose last position is no older than sixty minutes and falls inside the selected display range.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed-color"
+          },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 5,
+        "x": 19,
+        "y": 10
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "count"
+          ],
+          "fields": "/^Risk$/",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "13.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "afw2gu6ucbnk0f"
+          },
+          "query": "import \"math\"\n\npositions = from(bucket: \"ais\")\n  |> range(start: -60m)\n  |> filter(fn: (r) => r._measurement == \"navigation.position\" and (r._field == \"lat\" or r._field == \"lon\"))\n  |> pivot(rowKey: [\"_time\", \"context\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> filter(fn: (r) => exists r.lat and exists r.lon)\n  |> group(columns: [\"context\"])\n  |> sort(columns: [\"_time\"], desc: true)\n  |> limit(n: 1)\n  |> keep(columns: [\"context\", \"lat\", \"lon\", \"self\"])\n\nown = positions\n  |> filter(fn: (r) => r.self == \"true\")\n  |> map(fn: (r) => ({k: \"own\", ownLat: r.lat, ownLon: r.lon}))\n  |> limit(n: 1)\n\ntargets = positions\n  |> filter(fn: (r) => not exists r.self or r.self != \"true\")\n  |> map(fn: (r) => ({r with k: \"own\"}))\n\njoin(tables: {t: targets, o: own}, on: [\"k\"])\n  |> map(fn: (r) => {\n    northNM = (r.lat - r.ownLat) * 60.0\n    eastNM = (r.lon - r.ownLon) * 60.0 * math.cos(x: r.ownLat * math.pi / 180.0)\n    rangeNM = math.sqrt(x: northNM * northNM + eastNM * eastNM)\n    return {_time: now(), Risk: if rangeNM <= float(v: ${range_nm}) then 1.0 else 0.0}\n  })\n  |> filter(fn: (r) => r.Risk == 1.0)\n  |> group()",
+          "refId": "A"
+        }
+      ],
+      "title": "Targets in range",
+      "type": "stat"
+    },
+    {
+      "gridPos": {
+        "h": 9,
+        "w": 5,
+        "x": 19,
+        "y": 15
+      },
+      "id": 4,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "### Range colors\n\n<span style=\"color:#4DFF88\">▲ Green</span> — outside warning range  \n<span style=\"color:#FFD24A\">▲ Amber</span> — within **${warning_nm} NM**  \n<span style=\"color:#FF5A6F\">▲ Red</span> — within **${danger_nm} NM**\n\nBoat markers rotate to reported course and advance along COG/SOG between fixes, capped at 60 seconds. A boat with an anchor has shown neither SOG above 0.5 kn nor at least 0.01 NM of position movement for 120 seconds; anchored markers render at 50% opacity and return to normal as soon as movement resumes. Bright cyan arrows show a 10-minute course vector for moving targets with recent data. Targets progressively dim after 3, 15, and 30 minutes, then disappear at 60 minutes. Labels show callsign when available and MMSI otherwise.",
+        "mode": "markdown"
+      },
+      "pluginVersion": "13.2.0",
+      "title": "Watch key",
+      "transparent": true,
+      "type": "text"
+    }
+  ],
+  "preload": false,
+  "refresh": "10s",
+  "schemaVersion": 41,
+  "tags": [
+    "boat",
+    "ais",
+    "navigation",
+    "cabin-watch"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "0.1",
+          "value": "0.1"
+        },
+        "description": "Red marker threshold in nautical miles",
+        "hide": 0,
+        "label": "Danger range (NM)",
+        "name": "danger_nm",
+        "options": [
+          {
+            "selected": true,
+            "text": "0.1",
+            "value": "0.1"
+          }
+        ],
+        "query": "0.1",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "0.5",
+          "value": "0.5"
+        },
+        "description": "Amber marker threshold in nautical miles",
+        "hide": 0,
+        "label": "Warning range (NM)",
+        "name": "warning_nm",
+        "options": [
+          {
+            "selected": true,
+            "text": "0.5",
+            "value": "0.5"
+          }
+        ],
+        "query": "0.5",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "5",
+          "value": "5"
+        },
+        "description": "Outer radar ring and maximum displayed target range in nautical miles",
+        "hide": 0,
+        "label": "Display range (NM)",
+        "name": "range_nm",
+        "options": [
+          {
+            "selected": true,
+            "text": "5",
+            "value": "5"
+          }
+        ],
+        "query": "5",
+        "skipUrlSync": false,
+        "type": "textbox"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "AIS Radar Watch",
+  "uid": "boat-ais-radar",
+  "version": 2,
+  "weekStart": ""
+}

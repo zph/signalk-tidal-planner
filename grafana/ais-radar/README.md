@@ -25,6 +25,12 @@ targets use the boat-with-anchor symbol at 50 percent opacity. Each ten-second r
 the state, so a qualifying SOG report or observed movement immediately restores the normal boat
 symbol and opacity.
 
+Grafana creates one WebGL point buffer for every marker layer. The dashboard deliberately keeps
+only two: underway targets and own ship share one layer, and anchored targets use the other because
+Grafana fixes the SVG symbol per marker layer. Do not split own ship or target categories into more
+marker layers. Rebuilding extra point buffers on each ten-second refresh can interrupt OpenLayers'
+active drag interaction and leave the Geomap unresponsive.
+
 The right column includes current depth below the transducer, converted explicitly from meters to
 feet (`m * 3.280839895`), rounded to an integer, and backed by a 30-minute sparkline. The query uses
 `createEmpty: true` and never fills missing samples, so outages remain visible as gaps.

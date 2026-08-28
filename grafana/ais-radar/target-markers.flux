@@ -124,7 +124,7 @@ targets = withIdentity
   |> filter(fn: (r) => r.self != "true")
   |> map(fn: (r) => ({r with joinKey: "own"}))
 
-join(tables: {t: targets, o: own}, on: ["joinKey"])
+targetMarkers = join(tables: {t: targets, o: own}, on: ["joinKey"])
   |> map(fn: (r) => {
     age = float(v: uint(v: now()) - uint(v: r.positionTime)) / 1000000000.0
     sogAge = float(v: uint(v: now()) - uint(v: r.sogTime)) / 1000000000.0
@@ -154,4 +154,23 @@ join(tables: {t: targets, o: own}, on: ["joinKey"])
     }
   })
   |> filter(fn: (r) => r.Stationary == stationaryOnly and r.RangeNM <= float(v: ${range_nm}))
+
+ownMarker = withSpeed
+  |> filter(fn: (r) => r.self == "true" and not stationaryOnly)
+  |> limit(n: 1)
+  |> map(fn: (r) => ({
+    _time: r.positionTime,
+    Latitude: r.lat,
+    Longitude: r.lon,
+    Label: "OWN SHIP",
+    Course: r.cog * 180.0 / math.pi,
+    SpeedKnots: r.sog * 1.9438444924,
+    RangeNM: 0.0,
+    AgeMinutes: float(v: uint(v: now()) - uint(v: r.positionTime)) / 60000000000.0,
+    Risk: 0.0,
+    Stationary: false,
+    ColorLevel: 12.0
+  }))
+
+union(tables: [targetMarkers, ownMarker])
   |> group()

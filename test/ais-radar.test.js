@@ -7,16 +7,21 @@ const radarDir = path.join(__dirname, '..', 'grafana', 'ais-radar');
 const dashboard = JSON.parse(fs.readFileSync(path.join(radarDir, 'dashboard.json'), 'utf8'));
 const radar = dashboard.panels.find((panel) => panel.id === 1);
 
-test('splits underway and anchored AIS targets into distinct marker layers', () => {
-  const underway = radar.options.layers.find((layer) => layer.name === 'Underway AIS targets');
-  const anchored = radar.options.layers.find((layer) => layer.name === 'Anchored AIS targets');
+test('keeps the minimum two stable marker buffers across live data refreshes', () => {
+  const markerLayers = radar.options.layers.filter((layer) => layer.type === 'markers');
+  const targetQueries = radar.targets.filter((target) => ['A', 'S', 'O'].includes(target.refId));
 
-  assert.equal(underway.filterData.options, 'A');
-  assert.equal(underway.config.style.symbol.fixed, '/public/img/icons/marker/ais-boat.svg');
-  assert.equal(underway.config.style.opacity, 0.95);
-  assert.equal(anchored.filterData.options, 'S');
-  assert.equal(anchored.config.style.symbol.fixed, '/public/img/icons/marker/ais-boat-anchored.svg');
-  assert.equal(anchored.config.style.opacity, 0.5);
+  assert.equal(dashboard.refresh, '10s');
+  assert.equal(radar.options.view.id, 'coords');
+  assert.equal(radar.options.view.dashboardVariable, undefined);
+  assert.equal(markerLayers.length, 2);
+  assert.equal(markerLayers[0].name, 'Underway and own ship');
+  assert.equal(markerLayers[0].filterData.options, 'A');
+  assert.equal(markerLayers[0].config.style.opacity, 0.95);
+  assert.equal(markerLayers[1].name, 'Anchored AIS targets');
+  assert.equal(markerLayers[1].filterData.options, 'S');
+  assert.equal(markerLayers[1].config.style.opacity, 0.5);
+  assert.deepEqual(targetQueries.map((target) => target.refId), ['A', 'S']);
 });
 
 test('classifies stationary targets from both SOG and observed position over 120 seconds', () => {
@@ -29,6 +34,8 @@ test('classifies stationary targets from both SOG and observed position over 120
   assert.match(source, /movingDistanceNM = 0\.01/);
   assert.match(source, /stationary = not r\.speedMoving and not r\.positionMoving/);
   assert.match(source, /projectedNM = if r\.hasSog and sogAge <= 120\.0 and not stationary/);
+  assert.match(source, /union\(tables: \[targetMarkers, ownMarker\]\)/);
+  assert.match(source, /r\.self == "true" and not stationaryOnly/);
   assert.equal(underway, source.replace('__STATIONARY_ONLY__', 'false'));
   assert.equal(anchored, source.replace('__STATIONARY_ONLY__', 'true'));
 });

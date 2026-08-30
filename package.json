@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Signal K webapp for NOAA tide depth and daylight departure/return windows",
   "private": true,
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
   "license": "MIT",
   "files": [
     "public",

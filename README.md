@@ -7,6 +7,8 @@ A dependency-free Signal K standalone webapp for planning tide-limited daylight 
 
 Each result includes the full allowed departure and return ranges and the earliest-departure/latest-return combination that gives the maximum outing.
 
+The **Trips** tab provides a deliberately simple radius search. Enter a radius in nautical miles and the app finds marinas from the current Signal K vessel position (falling back to the selected NOAA station), ordered by straight-line distance. An optional starting-location search uses Photon place matching; use the arrow keys and Enter, or press Tab to accept the highlighted match. Results show entrance, transient-dock, and fuel-dock depths separately and leave absent values explicitly unknown.
+
 ![Tide Window Planner showing a daylight tide plan](public/screenshots/tide-window-planner.png)
 
 The station picker uses NOAA reference stations because they provide the six-minute prediction series required by the planner. Subordinate stations may be geographically closer, but NOAA provides only high/low predictions for them.
@@ -53,7 +55,7 @@ No package installation or frontend build is required:
 make
 ```
 
-Open <http://localhost:8000>. Use `make PORT=9000` to choose another port. Standalone mode uses browser geolocation because no Signal K vessel-position API is present.
+The development server restarts anything already listening on the selected port and opens the app in your browser. Use `make PORT=9000` to choose another port. Standalone mode uses browser geolocation because no Signal K vessel-position API is present.
 
 ## Data and interpretation
 
@@ -62,6 +64,12 @@ Open <http://localhost:8000>. Use `make PORT=9000` to choose another port. Stand
 - Tide height is in feet relative to Mean Lower Low Water (MLLW).
 - “Daylight” means sunrise through sunset at the selected station.
 - The entire “next high tide” outing must fit in one daylight period and cross exactly one below-threshold tide period.
+- Marina and nearby-facility data comes from OpenStreetMap under the ODbL. Searches are cached in the browser for offline fallback.
+- Marina depths are accepted only from location-specific tags (`depth:entrance`, `depth:guest`/`depth:transient`, and `depth:fuel`, including supported aliases). A general marina depth is not copied into those fields.
+- A reported depth retains its datum, source, observation date, and original value when present. Missing context is marked “verify locally”; missing depth is “unknown.”
+- Nearby food means an OpenStreetMap eatery within one nautical mile of the marina.
+- For marinas in the nearest quarter of the requested radius, the app queries USACE eHydro survey bins and NOAA ENC chart soundings within 0.25 nautical mile. These are shown as nearby approach evidence, never substituted for an unknown entrance or dock depth.
+- USACE survey reference datums vary by project and NOAA ENC GIS data is not certified for navigation, so both retain explicit source context and a local-verification warning.
 
 This is a planning aid, not a clearance guarantee. Weather, river flow, waves, vessel draft, chart datum, and local conditions can change usable clearance.
 

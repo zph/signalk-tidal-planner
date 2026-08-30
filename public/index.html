@@ -371,7 +371,19 @@
     let chartWheelTimer;
     let chartDrag = null;
 
-    function todayAtStation() { return isoDate(Date.now() + zoneOffsetHours(isoDate(Date.now())) * 3600000); }
+    function stationWallClock(now = Date.now()) {
+      // NOAA's `lst_ldt` predictions are parsed as a station-local wall-clock
+      // timeline, represented with UTC timestamps. Keep the current-time marker
+      // on that same timeline rather than using the viewer's time zone.
+      const standardOffset = Number(settings.timezoneOffset ?? Math.round(settings.longitude / 15));
+      let localDate = isoDate(now + standardOffset * 3600000);
+      let offset = zoneOffsetHours(localDate);
+      localDate = isoDate(now + offset * 3600000);
+      offset = zoneOffsetHours(localDate);
+      return now + offset * 3600000;
+    }
+
+    function todayAtStation() { return isoDate(stationWallClock()); }
 
     function dateValue(iso) {
       const [y, m, d] = iso.split('-').map(Number);
@@ -527,6 +539,12 @@
       }
       for (let t = start; t < end; t += DAY) {
         html += `<line x1="${x(t)}" x2="${x(t)}" y1="${pad.t}" y2="${height-pad.b}" stroke="rgba(173,220,215,.12)"/><text x="${x(t)+7}" y="${height-17}" fill="#91aaac" font-size="11">${esc(formatDay(t))}</text>`;
+      }
+      const now = stationWallClock();
+      if (now >= start && now <= end) {
+        const markerX = x(now);
+        const markerLabel = `Now · ${formatTime(now)}`;
+        html += `<g aria-label="${esc(markerLabel)}"><line x1="${markerX}" x2="${markerX}" y1="${pad.t}" y2="${height-pad.b}" stroke="#f7bc62" stroke-width="5" opacity=".18"/><line x1="${markerX}" x2="${markerX}" y1="${pad.t}" y2="${height-pad.b}" stroke="#f7bc62" stroke-width="1.5"/><text x="${markerX + 6}" y="${pad.t + 13}" fill="#f7bc62" font-size="11" font-weight="700">${esc(markerLabel)}</text></g>`;
       }
       const area = `${pathFor(visible, x, y)} L${x(visible.at(-1).t)},${y(minV)} L${x(visible[0].t)},${y(minV)} Z`;
       html += `<g clip-path="url(#plotClip)"><path d="${area}" fill="url(#water)"/><path d="${pathFor(visible, x, y)}" fill="none" stroke="#64a8d8" stroke-width="2"/>`;
@@ -1344,11 +1362,20 @@
     });
     $('tripRadius').addEventListener('keydown', event => { if (event.key === 'Enter') findMarinas(); });
     let resizeTimer;
+    let currentTimeTimer;
     window.addEventListener('resize', () => {
       if (!current) return;
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => render(current.data, current.threshold, current.startIso, current.days), 120);
     });
+    function scheduleCurrentTimeMarker() {
+      clearTimeout(currentTimeTimer);
+      const delay = 60000 - (Date.now() % 60000) + 20;
+      currentTimeTimer = setTimeout(() => {
+        if (current) render(current.data, current.threshold, current.startIso, current.days);
+        scheduleCurrentTimeMarker();
+      }, delay);
+    }
     async function initialize() {
       loadDefaults();
       const requestedId = new URLSearchParams(location.search).get('station');
@@ -1382,6 +1409,7 @@
       update();
     }
     selectTab(tabFromHash(), { updateHash: false });
+    scheduleCurrentTimeMarker();
     initialize();
   </script>
 </body>
